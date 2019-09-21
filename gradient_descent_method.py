@@ -52,6 +52,7 @@ def print_weight(prefix):
 
 
 init_weight()
+
 for episode in range(500):
     update_gradient()
     update_weight()
