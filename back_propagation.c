@@ -1,3 +1,227 @@
+/**************************************************
+* YOU MAY USE THIS CODE AT YOUR OWN RISK          *
+***************************************************
+  This is a neural network with one hidden layer.
+
+  You should set these parameters apporopriately
+
+	NUM_INPUT : number of inputs
+	NUM_HIDDEN : number of nodes in the hidden layer
+	NUM_OUTPUT : number of outputs
+	NUM_TRAINING_DATA : number of data for training
+	NUM_TEST_DATA : number of data for test
+	MAX_EPOCH : number of iterations for learning
+	LEARNING_RATE : learning rate (Eta)
+
+These variables are for training data:
+	double training_point[NUM_TRAINING_DATA][NUM_INPUT] : inputs of training data
+	double training_target[NUM_TRAINING_DATA][NUM_OUTPUT] : outputs of training data
+
+These variables are for test data:
+	double test_point[NUM_TEST_DATA][NUM_INPUT]	: inputs for test
+*/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <math.h>
+#include <locale.h>
+
+#define SIGMOID(x) (1./(1+exp(-(x))))
+
+
+//***********************************************************
+//** EXAMPLE5:          *****
+//***********************************************************
+#define NUM_INPUT	15
+#define	NUM_HIDDEN	100
+#define	NUM_OUTPUT	10
+#define	NUM_TRAINING_DATA	10
+#define	NUM_TEST_DATA	10
+
+#define	MAX_EPOCH	500000
+
+#define	LEARNING_RATE	0.5
+
+double training_point[NUM_TRAINING_DATA][NUM_INPUT]
+= {
+	{ 1.0, 1.0, 1.0,
+	1.0, 0.0, 1.0,
+	1.0, 0.0, 1.0,
+	1.0, 0.0, 1.0,
+	1.0, 1.0, 1.0 }, //0
+{ 1.0, 1.0, 0.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0 }, // 1
+{ 1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+1.0,1.0, 1.0,
+1.0, 0.0,0.0,
+1.0, 1.0, 1.0 }, // 2
+{ 1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+1.0, 1.0, 1.0 }, // 3
+{ 1.0, 0.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 0.0, 1.0 }, // 4
+{ 1.0, 1.0, 1.0,
+1.0, 0.0, 0.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+1.0, 1.0, 1.0 }, // 5
+{ 1.0, 1.0, 1.0,
+1.0, 0.0, 0.0,
+1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0 }, // 6
+{ 1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 0.0, 1.0 }, // 7
+{ 1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0 }, // 8
+{ 1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 0.0, 1.0 } // 9
+};
+
+double training_target[NUM_TRAINING_DATA][NUM_OUTPUT]
+= {
+{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, // 0
+{ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, // 1
+{ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, // 2
+{ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, // 3
+{ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, // 4
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 }, // 5
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 }, // 6
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 }, // 7
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 }, // 8
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 } // 9
+};
+
+
+double test_point[NUM_TEST_DATA][NUM_INPUT]
+= {
+	{ 1.0, 1.0, 1.0,
+	0.0, 0.0, 1.0,
+	1.0, 0.0, 1.0,
+	1.0, 0.0, 1.0,
+	1.0, 1.0, 1.0 }, //0
+{ 0.0, 1.0, 0.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0 }, // 1
+{ 1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 0.0, 0.0,
+1.0, 1.0, 1.0 }, //2
+{ 1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0 }, // 3
+{ 1.0, 0.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 1.0, 0.0 }, // 4
+{ 1.0, 1.0, 1.0,
+1.0, 0.0, 0.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 1.0, 1.0 }, // 5
+{ 1.0, 1.0, 0.0,
+1.0, 0.0, 0.0,
+1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 0.0 }, //6
+{ 1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 1.0, 0.0,
+0.0, 1.0, 0.0 }, // 7
+{ 0.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0 }, // 8
+{ 1.0, 1.0, 1.0,
+1.0, 0.0, 1.0,
+1.0, 1.0, 1.0,
+0.0, 0.0, 1.0,
+0.0, 1.0, 1.0 } // 9
+};
+
+int IsWhichNumber(double given_output[NUM_OUTPUT])
+{
+	double min = 9999999999999999999999999999999.0;
+	int min_idx = -1, i;
+	for (i = 0; i < NUM_OUTPUT; i++)
+	{
+		if (fabs(1.0 - given_output[i]) < min)
+		{
+			min = 1.0 - given_output[i];
+			min_idx = i;
+		}
+	}
+
+	return min_idx;
+}
+
+
+void PrintNumber(double given_input[NUM_INPUT])
+{
+	setlocale(LC_ALL, "Korean");
+	wchar_t square[] = L"м╥му";
+
+	for (int i = 0; i < NUM_INPUT; i++)
+	{
+		int temp = (int)given_input[i];
+		if (temp == 1) printf("%ls", square);
+		else printf("  ");
+
+		if ((((i + 1) % 3) == 0)) printf("\n");
+	}
+	printf("\n");
+}
+
+int InitWeight(double weight_kj[NUM_OUTPUT][NUM_HIDDEN], double weight_ji[NUM_HIDDEN][NUM_INPUT],
+	double bias_k[NUM_OUTPUT], double bias_j[NUM_HIDDEN])
+{
+	int i, j, k;
+
+	//weight initialization
+	for (k = 0; k < NUM_OUTPUT; k++)
+		for (j = 0; j < NUM_HIDDEN; j++)
+			weight_kj[k][j] = 1.0 * (rand() % 1000 - 500) / 5000;
+
+	for (j = 0; j < NUM_HIDDEN; j++)
+		for (i = 0; i < NUM_INPUT; i++)
+			weight_ji[j][i] = 1.0 * (rand() % 1000 - 500) / 5000;
+
+	for (k = 0; k < NUM_OUTPUT; k++)
+		bias_k[k] = 1.0 * (rand() % 1000 - 500) / 5000;
+
+	for (j = 0; j < NUM_HIDDEN; j++)
+		bias_j[j] = 1.0 * (rand() % 1000 - 500) / 5000;
+
+	return 0;
+}
+
 int ResetDelta(double delta_kj[NUM_OUTPUT][NUM_HIDDEN], double delta_ji[NUM_HIDDEN][NUM_INPUT],
 	double delta_bias_k[NUM_OUTPUT], double delta_bias_j[NUM_HIDDEN])
 {
@@ -54,7 +278,6 @@ int Forward(double training_point[NUM_INPUT],
 	return 0;
 }
 
-/* Back propagation algorithms */
 int Backward(double training_point[NUM_INPUT], double training_target[NUM_OUTPUT],
 	double hidden[NUM_HIDDEN], double output[NUM_OUTPUT],
 	double weight_kj[NUM_OUTPUT][NUM_HIDDEN],
@@ -67,10 +290,10 @@ int Backward(double training_point[NUM_INPUT], double training_target[NUM_OUTPUT
 	//evaluate delta_kj
 	for (k = 0; k < NUM_OUTPUT; k++)
 		for (j = 0; j < NUM_HIDDEN; j++)
-			delta_kj[k][j] += -output[k] * (1 - output[k])*(training_target[k] - output[k])*hidden[j];
+			delta_kj[k][j] += -output[k] * (1 - output[k]) * (training_target[k] - output[k]) * hidden[j];
 
 	for (k = 0; k < NUM_OUTPUT; k++)
-		delta_bias_k[k] += -output[k] * (1 - output[k])*(training_target[k] - output[k]);
+		delta_bias_k[k] += -output[k] * (1 - output[k]) * (training_target[k] - output[k]);
 
 	//evaluate delta_ji
 	for (j = 0; j < NUM_HIDDEN; j++)
@@ -78,22 +301,21 @@ int Backward(double training_point[NUM_INPUT], double training_target[NUM_OUTPUT
 		{
 			double delta_k = 0;
 			for (k = 0; k < NUM_OUTPUT; k++)
-				delta_k += -output[k] * (1 - output[k])*(training_target[k] - output[k])*weight_kj[k][j];
-			delta_ji[j][i] += delta_k*hidden[j] * (1 - hidden[j])*training_point[i];
+				delta_k += -output[k] * (1 - output[k]) * (training_target[k] - output[k]) * weight_kj[k][j];
+			delta_ji[j][i] += delta_k * hidden[j] * (1 - hidden[j]) * training_point[i];
 		}
 
 	for (j = 0; j < NUM_HIDDEN; j++)
 	{
 		double delta_k = 0;
 		for (k = 0; k < NUM_OUTPUT; k++)
-			delta_k += -output[k] * (1 - output[k])*(training_target[k] - output[k])*weight_kj[k][j];
-		delta_bias_j[j] += delta_k*hidden[j] * (1 - hidden[j]);
+			delta_k += -output[k] * (1 - output[k]) * (training_target[k] - output[k]) * weight_kj[k][j];
+		delta_bias_j[j] += delta_k * hidden[j] * (1 - hidden[j]);
 	}
 
 	return 0;
 }
 
-/* Gradient descent algorithms */
 int UpdateWeights(double delta_kj[NUM_OUTPUT][NUM_HIDDEN], double delta_ji[NUM_HIDDEN][NUM_INPUT],
 	double delta_bias_k[NUM_OUTPUT], double delta_bias_j[NUM_HIDDEN],
 	double weight_kj[NUM_OUTPUT][NUM_HIDDEN], double weight_ji[NUM_HIDDEN][NUM_INPUT],
@@ -104,17 +326,17 @@ int UpdateWeights(double delta_kj[NUM_OUTPUT][NUM_HIDDEN], double delta_ji[NUM_H
 	//update weights
 	for (k = 0; k < NUM_OUTPUT; k++)
 		for (j = 0; j < NUM_HIDDEN; j++)
-			weight_kj[k][j] -= LEARNING_RATE*delta_kj[k][j];
+			weight_kj[k][j] -= LEARNING_RATE * delta_kj[k][j];
 
 	for (k = 0; k < NUM_OUTPUT; k++)
-		bias_k[k] -= LEARNING_RATE*delta_bias_k[k];
+		bias_k[k] -= LEARNING_RATE * delta_bias_k[k];
 
 	for (j = 0; j < NUM_HIDDEN; j++)
 		for (i = 0; i < NUM_INPUT; i++)
-			weight_ji[j][i] -= LEARNING_RATE*delta_ji[j][i];
+			weight_ji[j][i] -= LEARNING_RATE * delta_ji[j][i];
 
 	for (j = 0; j < NUM_HIDDEN; j++)
-		bias_j[j] -= LEARNING_RATE*delta_bias_j[j];
+		bias_j[j] -= LEARNING_RATE * delta_bias_j[j];
 
 	return 0;
 }
@@ -190,7 +412,7 @@ int main()
 				hidden, output);
 
 			for (k = 0; k < NUM_OUTPUT; k++)
-				error += (output[k] - training_target[p][k])*(output[k] - training_target[p][k]);
+				error += (output[k] - training_target[p][k]) * (output[k] - training_target[p][k]);
 
 			Backward(training_point[p], training_target[p], hidden, output, weight_kj,
 				delta_kj, delta_ji, delta_bias_k, delta_bias_j);
