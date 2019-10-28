@@ -4,7 +4,8 @@ LEARNING_RATE = 0.5
 N_TRAIN_DATA = 4
 N_INPUT = 2
 N_NODE_LAYER_1 = 100
-N_OUTPUT = 1
+N_NODE_LAYER_2 = 1
+N_OUTPUT = N_NODE_LAYER_2
 N_EPISODE = 10000000
 TARGET_ERROR = 0.0001
 
@@ -200,10 +201,9 @@ output = create_1d_array(N_OUTPUT)
 
 init_weight()
 
-episode = 0
 exit_cond = False
 
-for episode in range(N_EPISODE):
+for epoch in range(N_EPISODE):
     reset_gradient()
     error = 0.0
     for d in range(N_TRAIN_DATA):
@@ -213,12 +213,12 @@ for episode in range(N_EPISODE):
             exit_cond = True
         backward(X[d], Y[d])
     update_weight()
-    if episode % 100 == 0:
-        print(episode, error)
+    if epoch % 100 == 0:
+        print(epoch, error)
     if exit_cond:
-        print(episode, error)
+        print(epoch, error)
         break
-    episode += 1
+    epoch += 1
 
 print_weight()
 print_answer()
