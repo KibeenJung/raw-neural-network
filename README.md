@@ -1,2 +1,2 @@
-# DeepLearning
-Implement things which is related to theory of deep learning
+# raw-neural-network
+Implement a neural network with multiple layers using C.
